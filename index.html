@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#7c3aed">
+<title>SingFaux 🎤</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f0a1e;--bg2:#1a1230;--accent:#7c3aed;--accent2:#a855f7;
+  --text:#f0e6ff;--text2:#a78bfa;--card:#1e1640;--border:#2d2055;
+  --green:#22c55e;--red:#ef4444;--radius:16px;
+}
+html{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text)}
+body{min-height:100dvh;max-width:480px;margin:0 auto;padding:16px;padding-bottom:env(safe-area-inset-bottom,16px)}
+
+/* Header */
+.header{text-align:center;padding:24px 0 16px}
+.header h1{font-size:2rem;background:linear-gradient(135deg,var(--accent2),#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header .sub{color:var(--text2);font-size:.85rem;margin-top:4px}
+
+/* Tabs */
+.tabs{display:flex;gap:8px;margin:16px 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabs button{flex-shrink:0;padding:10px 18px;border-radius:30px;border:1.5px solid var(--border);background:transparent;color:var(--text2);font-size:.85rem;font-weight:600;cursor:pointer;transition:.2s}
+.tabs button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* Card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card h2{font-size:1rem;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+/* Input */
+.input-group{position:relative;margin-bottom:16px}
+.input-group textarea,.input-group input{width:100%;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-size:1rem;font-family:inherit;resize:vertical;transition:.2s}
+.input-group textarea:focus,.input-group input:focus{border-color:var(--accent2);outline:none;box-shadow:0 0 0 3px rgba(124,58,237,.2)}
+.input-group textarea{min-height:120px}
+.input-group label{display:block;font-size:.8rem;color:var(--text2);margin-bottom:6px;font-weight:600}
+
+/* Buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;border:none;font-size:1rem;font-weight:700;cursor:pointer;transition:.2s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 20px rgba(124,58,237,.3)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-secondary{background:var(--bg2);border:1.5px solid var(--border);color:var(--text)}
+.btn-sm{padding:8px 14px;font-size:.85rem;width:auto;border-radius:10px}
+
+/* Result */
+.result{margin-top:16px}
+.line-pair{margin-bottom:16px;padding:14px;background:var(--bg2);border-radius:12px;border-left:3px solid var(--accent)}
+.line-en{font-size:.8rem;color:var(--text2);margin-bottom:6px;font-style:italic}
+.line-fr{font-size:1.15rem;font-weight:700;color:var(--text);line-height:1.4;letter-spacing:.3px}
+
+/* Karaoke */
+.karaoke-line{text-align:center;font-size:1.5rem;font-weight:800;padding:32px 16px;color:var(--text);line-height:1.5;min-height:120px;display:flex;align-items:center;justify-content:center}
+.karaoke-line span.highlight{color:var(--accent2);text-shadow:0 0 20px rgba(168,85,247,.5)}
+.karaoke-controls{display:flex;gap:10px;justify-content:center;margin-top:16px}
+
+/* Songs list */
+.song-item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:12px;background:var(--bg2);margin-bottom:10px;cursor:pointer;transition:.2s}
+.song-item:hover{background:var(--border)}
+.song-item .emoji{font-size:2rem;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--card);border-radius:12px}
+.song-item .info{flex:1}
+.song-item .info .title{font-weight:700;font-size:.95rem}
+.song-item .info .artist{font-size:.8rem;color:var(--text2)}
+
+/* Toast */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--accent);color:#fff;padding:12px 24px;border-radius:30px;font-weight:600;font-size:.85rem;opacity:0;transition:.3s;z-index:100;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Animate */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .3s ease-out}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* Section visibility */
+.section{display:none}
+.section.active{display:block}
+
+/* How it works */
+.step{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+.step-num{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0}
+.step-text{flex:1}
+.step-text strong{display:block;margin-bottom:2px}
+.step-text small{color:var(--text2);font-size:.8rem}
+
+/* Loading */
+.spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎤 SingFaux</h1>
+  <p class="sub">Chante en anglais... à la française !</p>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="active" data-tab="convert">✨ Convertir</button>
+  <button data-tab="library">📚 Exemples</button>
+  <button data-tab="about">💡 Comment ça marche</button>
+</div>
+
+<!-- CONVERT TAB -->
+<div class="section active" id="tab-convert">
+  <div class="card">
+    <h2>🎵 Paroles anglaises</h2>
+    <div class="input-group">
+      <label>Colle les paroles d'une chanson en anglais</label>
+      <textarea id="inputLyrics" placeholder="I can't get no satisfaction&#10;I can't get no satisfaction&#10;'Cause I try and I try and I try and I try..."></textarea>
+    </div>
+    <button class="btn btn-primary" id="btnConvert" onclick="convertLyrics()">
+      ✨ Transformer en yaourt
+    </button>
+  </div>
+
+  <div id="resultArea" class="result" style="display:none">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h2 style="margin:0">🇫🇷 Version yaourt</h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm btn-secondary" onclick="copyResult()">📋 Copier</button>
+          <button class="btn btn-sm btn-secondary" onclick="startKaraoke()">🎤 Karaoké</button>
+        </div>
+      </div>
+      <div id="resultLines"></div>
+    </div>
+  </div>
+
+  <!-- Karaoke overlay -->
+  <div id="karaokeOverlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:50;padding:20px;flex-direction:column;justify-content:center">
+    <div class="karaoke-line" id="karaokeLine"></div>
+    <div class="karaoke-controls">
+      <button class="btn btn-sm btn-secondary" onclick="karaokePrev()">⏮</button>
+      <button class="btn btn-sm btn-primary" id="karaokePlayBtn" onclick="karaokeToggle()">▶ Go</button>
+      <button class="btn btn-sm btn-secondary" onclick="karaokeNext()">⏭</button>
+      <button class="btn btn-sm btn-secondary" onclick="closeKaraoke()">✕ Fermer</button>
+    </div>
+    <div style="text-align:center;margin-top:16px;color:var(--text2);font-size:.8rem" id="karaokeCounter"></div>
+  </div>
+</div>
+
+<!-- LIBRARY TAB -->
+<div class="section" id="tab-library">
+  <div class="card">
+    <h2>📚 Chansons d'exemple</h2>
+    <p style="font-size:.85rem;color:var(--text2);margin-bottom:16px">Touche une chanson pour voir sa version yaourt</p>
+    <div id="songList"></div>
+  </div>
+</div>
+
+<!-- ABOUT TAB -->
+<div class="section" id="tab-about">
+  <div class="card">
+    <h2>💡 Comment ça marche ?</h2>
+    <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Colle des paroles anglaises</strong><small>Trouve les lyrics sur internet et colle-les dans l'app</small></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><strong>SingFaux les transforme</strong><small>Chaque mot anglais est converti en syllabes françaises qui sonnent pareil</small></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Chante le yaourt !</strong><small>Lis le texte français à voix haute — ça sonne comme de l'anglais 🤯</small></div></div>
+  </div>
+
+  <div class="card">
+    <h2>🎯 Exemples rapides</h2>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="line-pair"><div class="line-en">Hello → </div><div class="line-fr">Hèlô</div></div>
+      <div class="line-pair"><div class="line-en">I love you → </div><div class="line-fr">Aïe love iou</div></div>
+      <div class="line-pair"><div class="line-en">Satisfaction → </div><div class="line-fr">Satisse-facsheune</div></div>
+      <div class="line-pair"><div class="line-en">Yesterday → </div><div class="line-fr">Yèss-teur-dé</div></div>
+      <div class="line-pair"><div class="line-en">Bohemian Rhapsody → </div><div class="line-fr">Bo-hi-mianne Rap-so-di</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ℹ️ À propos</h2>
+    <p style="font-size:.85rem;color:var(--text2);line-height:1.6">
+      <strong>SingFaux</strong> transforme les paroles anglaises en phonétique française pour que tu puisses chanter sans comprendre un mot d'anglais. 
+      C'est du yaourt, mais du yaourt qui sonne bien ! 🎤
+    </p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== PHONETIC ENGINE =====
+// English-to-French phonetic mapping
+// Maps common English letter patterns to French-readable syllables
+
+const PHONETIC_RULES = [
+  // Multi-character patterns (order matters — longest first)
+  [/\bthe\b/gi, 'ze'],
+  [/\bthis\b/gi, 'ziss'],
+  [/\bthat\b/gi, 'zat'],
+  [/\bthey\b/gi, 'zé'],
+  [/\bthem\b/gi, 'zèm'],
+  [/\bthen\b/gi, 'zène'],
+  [/\bthere\b/gi, 'zère'],
+  [/\btheir\b/gi, 'zère'],
+  [/\bthough\b/gi, 'zô'],
+  [/\bthrough\b/gi, 'zrou'],
+  [/\bthink\b/gi, 'zinnk'],
+  [/\bthing\b/gi, 'zinng'],
+  [/\bwith\b/gi, 'ouiz'],
+  [/\byou\b/gi, 'iou'],
+  [/\byour\b/gi, 'iore'],
+  [/\byou're\b/gi, 'iore'],
+  [/\byou've\b/gi, 'iouv'],
+  [/\byou'll\b/gi, 'ioull'],
+  [/\bi\b/gi, 'aïe'],
+  [/\bi'm\b/gi, 'aïme'],
+  [/\bi'll\b/gi, 'aïll'],
+  [/\bi've\b/gi, 'aïve'],
+  [/\bi'd\b/gi, 'aïde'],
+  [/\bmy\b/gi, 'maïe'],
+  [/\bme\b/gi, 'mi'],
+  [/\bwe\b/gi, 'oui'],
+  [/\bshe\b/gi, 'shi'],
+  [/\bhe\b/gi, 'hi'],
+  [/\bher\b/gi, 'heur'],
+  [/\bhis\b/gi, 'hiz'],
+  [/\bwhat\b/gi, 'ouate'],
+  [/\bwhere\b/gi, 'ouère'],
+  [/\bwhen\b/gi, 'ouène'],
+  [/\bwhy\b/gi, 'ouaïe'],
+  [/\bwho\b/gi, 'hou'],
+  [/\bhow\b/gi, 'haou'],
+  [/\bdon't\b/gi, 'donnte'],
+  [/\bcan't\b/gi, 'quannte'],
+  [/\bwon't\b/gi, 'ouonnte'],
+  [/\bdidn't\b/gi, 'did-nnte'],
+  [/\bisn't\b/gi, 'iz-nnte'],
+  [/\baren't\b/gi, 'arnnte'],
+  [/\bwasn't\b/gi, 'ouoz-nnte'],
+  [/\bcouldn't\b/gi, 'coud-nnte'],
+  [/\bwouldn't\b/gi, 'woud-nnte'],
+  [/\bshouldn't\b/gi, 'shoud-nnte'],
+  [/\bhaven't\b/gi, 'hav-nnte'],
+  [/\bhasn't\b/gi, 'haz-nnte'],
+  [/\blet's\b/gi, 'lètss'],
+  [/\bit's\b/gi, 'itss'],
+  [/\bthat's\b/gi, 'zatss'],
+  [/\bwhat's\b/gi, 'ouatss'],
+  [/\bhere\b/gi, 'hire'],
+  [/\blove\b/gi, 'love'],
+  [/\bhave\b/gi, 'have'],
+  [/\bgive\b/gi, 'guive'],
+  [/\blive\b/gi, 'live'],
+  [/\bcome\b/gi, 'come'],
+  [/\bsome\b/gi, 'some'],
+  [/\bhome\b/gi, 'hôme'],
+  [/\btime\b/gi, 'taïme'],
+  [/\blike\b/gi, 'laïke'],
+  [/\bmake\b/gi, 'méke'],
+  [/\btake\b/gi, 'téke'],
+  [/\bknow\b/gi, 'nô'],
+  [/\bshow\b/gi, 'shô'],
+  [/\bglow\b/gi, 'glô'],
+  [/\bflow\b/gi, 'flô'],
+  [/\bslow\b/gi, 'slô'],
+  [/\bgrow\b/gi, 'grô'],
+  [/\bnight\b/gi, 'naïte'],
+  [/\blight\b/gi, 'laïte'],
+  [/\bright\b/gi, 'raïte'],
+  [/\bfight\b/gi, 'faïte'],
+  [/\btight\b/gi, 'taïte'],
+  [/\bsight\b/gi, 'saïte'],
+  [/\bmight\b/gi, 'maïte'],
+  [/\bhigh\b/gi, 'haïe'],
+  [/\bsigh\b/gi, 'saïe'],
+  [/\beyes\b/gi, 'aïze'],
+  [/\beye\b/gi, 'aïe'],
+  [/\bfire\b/gi, 'faïeur'],
+  [/\bdesire\b/gi, 'dizaïeur'],
+  [/\bheart\b/gi, 'harte'],
+  [/\bstart\b/gi, 'starte'],
+  [/\bpart\b/gi, 'parte'],
+  [/\bdream\b/gi, 'drîme'],
+  [/\bscream\b/gi, 'scrîme'],
+  [/\bstream\b/gi, 'strîme'],
+  [/\bfeel\b/gi, 'fîle'],
+  [/\breal\b/gi, 'rîle'],
+  [/\bdeal\b/gi, 'dîle'],
+  [/\bheal\b/gi, 'hîle'],
+  [/\bsteal\b/gi, 'stîle'],
+  [/\bworld\b/gi, 'weurlde'],
+  [/\bgirl\b/gi, 'gueurle'],
+  [/\bboy\b/gi, 'boïe'],
+  [/\bjoy\b/gi, 'djoïe'],
+  [/\btoy\b/gi, 'toïe'],
+  [/\bsay\b/gi, 'sé'],
+  [/\bday\b/gi, 'dé'],
+  [/\bway\b/gi, 'oué'],
+  [/\bplay\b/gi, 'plé'],
+  [/\bstay\b/gi, 'sté'],
+  [/\baway\b/gi, 'è-oué'],
+  [/\balways\b/gi, 'ol-ouéze'],
+  [/\bforever\b/gi, 'fore-veur'],
+  [/\bnever\b/gi, 'nè-veur'],
+  [/\bever\b/gi, 'è-veur'],
+  [/\btogether\b/gi, 'tou-guè-zeur'],
+  [/\bremember\b/gi, 'ri-mèm-beur'],
+  [/\bbelieve\b/gi, 'bi-lîve'],
+  [/\breceive\b/gi, 'ri-cîve'],
+  [/\bbecause\b/gi, 'bi-côze'],
+  [/\bbefore\b/gi, 'bi-fore'],
+  [/\bbehind\b/gi, 'bi-haïnde'],
+  [/\bbelow\b/gi, 'bi-lô'],
+  [/\babove\b/gi, 'è-bove'],
+  [/\baround\b/gi, 'è-raound'],
+  [/\bagain\b/gi, 'è-guène'],
+  [/\bagainst\b/gi, 'è-guènste'],
+  [/\banother\b/gi, 'è-no-zeur'],
+  [/\bnothing\b/gi, 'no-zinng'],
+  [/\bsomething\b/gi, 'some-zinng'],
+  [/\beverything\b/gi, 'èvri-zinng'],
+  [/\beveryone\b/gi, 'èvri-ouane'],
+  [/\beverybody\b/gi, 'èvri-bodi'],
+  [/\banybody\b/gi, 'èni-bodi'],
+  [/\banyone\b/gi, 'èni-ouane'],
+  [/\banything\b/gi, 'èni-zinng'],
+  [/\bpeople\b/gi, 'pi-peule'],
+  [/\blittle\b/gi, 'li-teule'],
+  [/\bmiddle\b/gi, 'mi-deule'],
+  [/\bsimple\b/gi, 'simm-peule'],
+  [/\btrouble\b/gi, 'tro-beule'],
+  [/\bdouble\b/gi, 'do-beule'],
+  [/\bbeautiful\b/gi, 'biou-ti-foule'],
+  [/\bwonderful\b/gi, 'ouane-deur-foule'],
+  [/\bonly\b/gi, 'ône-li'],
+  [/\blonely\b/gi, 'lone-li'],
+  [/\breally\b/gi, 'ri-li'],
+  [/\bcrazy\b/gi, 'cré-zi'],
+  [/\bbaby\b/gi, 'bé-bi'],
+  [/\blady\b/gi, 'lé-di'],
+  [/\bmaybe\b/gi, 'mé-bi'],
+  [/\bhappy\b/gi, 'ha-pi'],
+  [/\bsorry\b/gi, 'so-ri'],
+  [/\bstory\b/gi, 'sto-ri'],
+  [/\bglory\b/gi, 'glo-ri'],
+  [/\bmorning\b/gi, 'mor-ninng'],
+  [/\bnothing\b/gi, 'no-zinng'],
+  [/\bwalking\b/gi, 'ouo-kinng'],
+  [/\btalking\b/gi, 'to-kinng'],
+  [/\bdancing\b/gi, 'dane-cinng'],
+  [/\bsinging\b/gi, 'sinng-inng'],
+  [/\brunning\b/gi, 'ro-ninng'],
+  [/\bcoming\b/gi, 'co-minng'],
+  [/\bgoing\b/gi, 'gô-inng'],
+  [/\bknowing\b/gi, 'nô-inng'],
+  [/\bshould\b/gi, 'shoude'],
+  [/\bcould\b/gi, 'coude'],
+  [/\bwould\b/gi, 'woude'],
+  [/\babout\b/gi, 'è-baout'],
+  [/\bwithout\b/gi, 'ouiz-aout'],
+  [/\bdown\b/gi, 'daoun'],
+  [/\btown\b/gi, 'taoun'],
+  [/\bnow\b/gi, 'naou'],
+  [/\bhow\b/gi, 'haou'],
+  [/\bwow\b/gi, 'ouaou'],
+  [/\bpower\b/gi, 'paou-eur'],
+  [/\btower\b/gi, 'taou-eur'],
+  [/\bflower\b/gi, 'flaou-eur'],
+  [/\bshower\b/gi, 'shaou-eur'],
+  [/\bover\b/gi, 'ô-veur'],
+  [/\bunder\b/gi, 'one-deur'],
+  [/\bafter\b/gi, 'af-teur'],
+  [/\bwater\b/gi, 'ouo-teur'],
+  [/\bbetter\b/gi, 'bè-teur'],
+  [/\bletter\b/gi, 'lè-teur'],
+  [/\bfather\b/gi, 'fa-zeur'],
+  [/\bmother\b/gi, 'mo-zeur'],
+  [/\bbrother\b/gi, 'bro-zeur'],
+  [/\bother\b/gi, 'o-zeur'],
+  [/\btrue\b/gi, 'trou'],
+  [/\bblue\b/gi, 'blou'],
+  [/\bnew\b/gi, 'niou'],
+  [/\bfew\b/gi, 'fiou'],
+  [/\bknew\b/gi, 'niou'],
+  [/\byou\b/gi, 'iou'],
+  [/\btoo\b/gi, 'tou'],
+  [/\bwho\b/gi, 'hou'],
+  [/\bdo\b/gi, 'dou'],
+  [/\bto\b/gi, 'tou'],
+  [/\bno\b/gi, 'nô'],
+  [/\bgo\b/gi, 'gô'],
+  [/\bso\b/gi, 'sô'],
+  [/\boh\b/gi, 'ô'],
+  [/\bah\b/gi, 'a'],
+  [/\byeah\b/gi, 'yè'],
+  [/\bok\b/gi, 'ôké'],
+  [/\bokay\b/gi, 'ôké'],
+  [/\bhello\b/gi, 'hèlô'],
+  [/\bgoodbye\b/gi, 'goude-baïe'],
+  [/\bplease\b/gi, 'plîze'],
+  [/\bthanks\b/gi, 'zannks'],
+  [/\bthank\b/gi, 'zannk'],
+  [/\bsorry\b/gi, 'sori'],
+  [/\byes\b/gi, 'yèss'],
+  [/\bjust\b/gi, 'djoste'],
+  [/\bmust\b/gi, 'moste'],
+  [/\btrust\b/gi, 'troste'],
+  [/\bdust\b/gi, 'doste'],
+  [/\bfirst\b/gi, 'feurste'],
+  [/\blast\b/gi, 'laste'],
+  [/\bfast\b/gi, 'faste'],
+  [/\bpast\b/gi, 'paste'],
+  [/\blife\b/gi, 'laïfe'],
+  [/\bwife\b/gi, 'ouaïfe'],
+  [/\bknife\b/gi, 'naïfe'],
+  [/\bdrive\b/gi, 'draïve'],
+  [/\balive\b/gi, 'è-laïve'],
+  [/\bwhere\b/gi, 'ouère'],
+  [/\bthere\b/gi, 'zère'],
+  [/\bcare\b/gi, 'kère'],
+  [/\bshare\b/gi, 'shère'],
+  [/\bstare\b/gi, 'stère'],
+  [/\bdare\b/gi, 'dère'],
+  [/\bmore\b/gi, 'more'],
+  [/\bbore\b/gi, 'bore'],
+  [/\bscore\b/gi, 'score'],
+  [/\bstore\b/gi, 'store'],
+  [/\bbefore\b/gi, 'bi-fore'],
+  [/\bfor\b/gi, 'fore'],
+  [/\bwar\b/gi, 'ouore'],
+  [/\bstar\b/gi, 'stare'],
+  [/\bfar\b/gi, 'fare'],
+  [/\bcar\b/gi, 'kare'],
+  [/\bbar\b/gi, 'bare'],
+  [/\bhard\b/gi, 'harde'],
+  [/\bguard\b/gi, 'garde'],
+  [/\bdark\b/gi, 'darke'],
+  [/\bpark\b/gi, 'parke'],
+  [/\bmark\b/gi, 'marke'],
+  [/\bsoul\b/gi, 'sôle'],
+  [/\brole\b/gi, 'rôle'],
+  [/\bwhole\b/gi, 'hôle'],
+  [/\broll\b/gi, 'rôle'],
+  [/\brock\b/gi, 'roke'],
+  [/\block\b/gi, 'loke'],
+  [/\bshock\b/gi, 'shoke'],
+  [/\bblock\b/gi, 'bloke'],
+  [/\bstop\b/gi, 'stope'],
+  [/\bdrop\b/gi, 'drope'],
+  [/\btop\b/gi, 'tope'],
+  [/\bpop\b/gi, 'pope'],
+  [/\bgood\b/gi, 'goude'],
+  [/\bfood\b/gi, 'foude'],
+  [/\bmood\b/gi, 'moude'],
+  [/\bblood\b/gi, 'blode'],
+  [/\bflood\b/gi, 'flode'],
+  [/\bstand\b/gi, 'stannde'],
+  [/\bhand\b/gi, 'hannde'],
+  [/\bland\b/gi, 'lannde'],
+  [/\bband\b/gi, 'bannde'],
+  [/\bsand\b/gi, 'sannde'],
+  [/\bwind\b/gi, 'ouinnde'],
+  [/\bmind\b/gi, 'maïnde'],
+  [/\bfind\b/gi, 'faïnde'],
+  [/\bkind\b/gi, 'kaïnde'],
+  [/\bbehind\b/gi, 'bi-haïnde'],
+  [/\bblind\b/gi, 'blaïnde'],
+  [/\blong\b/gi, 'lonng'],
+  [/\bsong\b/gi, 'sonng'],
+  [/\bstrong\b/gi, 'stronng'],
+  [/\bwrong\b/gi, 'ouronng'],
+  [/\balong\b/gi, 'è-lonng'],
+  [/\bbelong\b/gi, 'bi-lonng'],
+  [/\bbring\b/gi, 'brinng'],
+  [/\bking\b/gi, 'kinng'],
+  [/\bring\b/gi, 'rinng'],
+  [/\bsing\b/gi, 'sinng'],
+  [/\bswing\b/gi, 'souinng'],
+  [/\bthing\b/gi, 'zinng'],
+  [/\bwing\b/gi, 'ouinng'],
+  [/\bspring\b/gi, 'sprinng'],
+  [/\bstring\b/gi, 'strinng'],
+  [/\bget\b/gi, 'guète'],
+  [/\bset\b/gi, 'sète'],
+  [/\blet\b/gi, 'lète'],
+  [/\byet\b/gi, 'yète'],
+  [/\bwet\b/gi, 'ouète'],
+  [/\bbet\b/gi, 'bète'],
+  [/\bfree\b/gi, 'fri'],
+  [/\btree\b/gi, 'tri'],
+  [/\bsee\b/gi, 'si'],
+  [/\bbee\b/gi, 'bi'],
+  [/\bthree\b/gi, 'zri'],
+  [/\bneed\b/gi, 'nîde'],
+  [/\bfeed\b/gi, 'fîde'],
+  [/\bseed\b/gi, 'sîde'],
+  [/\bspeed\b/gi, 'spîde'],
+  [/\bkeep\b/gi, 'kîpe'],
+  [/\bsleep\b/gi, 'slîpe'],
+  [/\bdeep\b/gi, 'dîpe'],
+  [/\bsweet\b/gi, 'souîte'],
+  [/\bstreet\b/gi, 'strîte'],
+  [/\bmeet\b/gi, 'mîte'],
+  [/\bfeet\b/gi, 'fîte'],
+  [/\bsay\b/gi, 'sé'],
+  [/\btoday\b/gi, 'tou-dé'],
+  [/\bbreak\b/gi, 'bréke'],
+  [/\bgreat\b/gi, 'gréte'],
+  [/\btrain\b/gi, 'tréne'],
+  [/\brain\b/gi, 'réne'],
+  [/\brain\b/gi, 'réne'],
+  [/\bpain\b/gi, 'péne'],
+  [/\bmain\b/gi, 'méne'],
+  [/\bgain\b/gi, 'guéne'],
+  [/\bchain\b/gi, 'tchéne'],
+  [/\bbrain\b/gi, 'bréne'],
+  [/\bwait\b/gi, 'ouéte'],
+  [/\blate\b/gi, 'léte'],
+  [/\bgate\b/gi, 'guéte'],
+  [/\bhate\b/gi, 'héte'],
+  [/\bfate\b/gi, 'féte'],
+  [/\bstate\b/gi, 'stéte'],
+  [/\bcreate\b/gi, 'cri-éte'],
+  [/\bplace\b/gi, 'plésse'],
+  [/\bface\b/gi, 'fésse'],
+  [/\bspace\b/gi, 'spésse'],
+  [/\brace\b/gi, 'résse'],
+  [/\bgrace\b/gi, 'grésse'],
+  [/\bname\b/gi, 'néme'],
+  [/\bgame\b/gi, 'guéme'],
+  [/\bframe\b/gi, 'fréme'],
+  [/\bflame\b/gi, 'fléme'],
+  [/\bsame\b/gi, 'séme'],
+  [/\bcame\b/gi, 'kéme'],
+  [/\bsave\b/gi, 'séve'],
+  [/\bbrave\b/gi, 'bréve'],
+  [/\bgrave\b/gi, 'gréve'],
+  [/\bwave\b/gi, 'ouéve'],
+  [/\bhave\b/gi, 'have'],
+  [/\band\b/gi, 'annde'],
+  [/\bam\b/gi, 'ame'],
+  [/\ban\b/gi, 'ane'],
+  [/\bas\b/gi, 'aze'],
+  [/\bat\b/gi, 'ate'],
+  [/\bbut\b/gi, 'bote'],
+  [/\bif\b/gi, 'ife'],
+  [/\bin\b/gi, 'ine'],
+  [/\bis\b/gi, 'iz'],
+  [/\bit\b/gi, 'ite'],
+  [/\bnot\b/gi, 'note'],
+  [/\bof\b/gi, 'ove'],
+  [/\bon\b/gi, 'one'],
+  [/\bor\b/gi, 'ore'],
+  [/\bup\b/gi, 'ope'],
+  [/\bus\b/gi, 'osse'],
+  [/\bwas\b/gi, 'ouoze'],
+  [/\bare\b/gi, 'are'],
+  [/\bbe\b/gi, 'bi'],
+  [/\bbeen\b/gi, 'bîne'],
+  [/\bbeing\b/gi, 'bî-inng'],
+  [/\bwere\b/gi, 'oueure'],
+  [/\bwill\b/gi, 'ouile'],
+  [/\bcan\b/gi, 'kanne'],
+  [/\ball\b/gi, 'ole'],
+  [/\btry\b/gi, 'traïe'],
+  [/\bcry\b/gi, 'kraïe'],
+  [/\bfly\b/gi, 'flaïe'],
+  [/\bsky\b/gi, 'skaïe'],
+  [/\bby\b/gi, 'baïe'],
+  [/\bdie\b/gi, 'daïe'],
+  [/\blie\b/gi, 'laïe'],
+  [/\btie\b/gi, 'taïe'],
+  [/\bpie\b/gi, 'païe'],
+  [/\bout\b/gi, 'aoute'],
+  [/\bshout\b/gi, 'shaoute'],
+  [/\bloud\b/gi, 'laoude'],
+  [/\bproud\b/gi, 'praoude'],
+  [/\bcloud\b/gi, 'klaoude'],
+  [/\bround\b/gi, 'raounde'],
+  [/\bsound\b/gi, 'saounde'],
+  [/\bfound\b/gi, 'faounde'],
+  [/\bground\b/gi, 'graounde'],
+  [/\bbound\b/gi, 'baounde'],
+  [/\bwound\b/gi, 'ouaounde'],
+  [/\benough\b/gi, 'i-nofe'],
+  [/\btough\b/gi, 'tofe'],
+  [/\brough\b/gi, 'rofe'],
+  [/\blaugh\b/gi, 'lafe'],
+  [/\bcause\b/gi, 'côze'],
+  [/\bpause\b/gi, 'poze'],
+];
+
+// Generic phonetic fallback for unknown words
+function phoneticFallback(word) {
+  let w = word.toLowerCase();
+  
+  // Apply sub-word phonetic transformations
+  const subRules = [
+    // Endings
+    [/tion$/g, 'sheune'],
+    [/sion$/g, 'jeune'],
+    [/ous$/g, 'osse'],
+    [/ious$/g, 'i-osse'],
+    [/eous$/g, 'i-osse'],
+    [/ness$/g, 'nèss'],
+    [/ment$/g, 'mennte'],
+    [/ment$/g, 'mennte'],
+    [/ful$/g, 'foule'],
+    [/less$/g, 'lèss'],
+    [/able$/g, 'è-beule'],
+    [/ible$/g, 'i-beule'],
+    [/ture$/g, 'tcheur'],
+    [/sure$/g, 'sheur'],
+    [/ance$/g, 'annce'],
+    [/ence$/g, 'ennce'],
+    [/ing$/g, 'inng'],
+    [/ight$/g, 'aïte'],
+    [/ough$/g, 'ofe'],
+    [/ould$/g, 'oude'],
+    [/ound$/g, 'aounde'],
+    [/ouse$/g, 'aouze'],
+    [/outh$/g, 'aouze'],
+    [/own$/g, 'ône'],
+    [/ow$/g, 'ô'],
+    [/ew$/g, 'iou'],
+    [/aw$/g, 'o'],
+    [/ee$/g, 'i'],
+    [/ea$/g, 'i'],
+    [/oo$/g, 'ou'],
+    [/ue$/g, 'ou'],
+    [/ie$/g, 'i'],
+    [/ay$/g, 'é'],
+    [/ey$/g, 'é'],
+    [/ly$/g, 'li'],
+    [/ry$/g, 'ri'],
+    [/ty$/g, 'ti'],
+    [/ny$/g, 'ni'],
+    [/py$/g, 'pi'],
+    [/by$/g, 'bi'],
+    [/dy$/g, 'di'],
+    [/gy$/g, 'dji'],
+    [/cy$/g, 'ci'],
+    [/er$/g, 'eur'],
+    [/or$/g, 'eur'],
+    [/ar$/g, 'are'],
+    [/ed$/g, 'de'],
+    [/es$/g, 'ze'],
+    // Silent e at end
+    [/([bcdfghjklmnpqrstvwxyz])e$/g, '$1e'],
+    
+    // Beginnings and middles
+    [/^wh/g, 'ou'],
+    [/^wr/g, 'r'],
+    [/^kn/g, 'n'],
+    [/^ph/g, 'f'],
+    [/^ch/g, 'tch'],
+    [/^sh/g, 'sh'],
+    [/^th/g, 'z'],
+    [/th/g, 'z'],
+    [/ph/g, 'f'],
+    [/ch/g, 'tch'],
+    [/sh/g, 'sh'],
+    [/ck/g, 'k'],
+    [/gh/g, ''],
+    [/wh/g, 'ou'],
+    [/wr/g, 'r'],
+    [/kn/g, 'n'],
+    [/qu/g, 'kou'],
+    [/x/g, 'ks'],
+    [/w(?=[aeiou])/g, 'ou'],
+    [/j/g, 'dj'],
+    [/y(?=[aeiou])/g, 'y'],
+  ];
+
+  for (const [pattern, replacement] of subRules) {
+    w = w.replace(pattern, replacement);
+  }
+
+  return w;
+}
+
+function convertWord(word) {
+  // Preserve punctuation
+  const punctBefore = word.match(/^[^a-zA-Z']+/) || [''];
+  const punctAfter = word.match(/[^a-zA-Z']+$/) || [''];
+  const clean = word.replace(/^[^a-zA-Z']+/, '').replace(/[^a-zA-Z']+$/, '');
+
+  if (!clean) return word;
+
+  // Check exact rules
+  for (const [pattern, replacement] of PHONETIC_RULES) {
+    if (pattern.test(clean)) {
+      pattern.lastIndex = 0; // Reset regex
+      return punctBefore[0] + replacement + punctAfter[0];
+    }
+  }
+
+  // Fallback
+  return punctBefore[0] + phoneticFallback(clean) + punctAfter[0];
+}
+
+function convertLine(line) {
+  if (!line.trim()) return '';
+  return line.split(/(\s+)/).map(segment => {
+    if (/^\s+$/.test(segment)) return segment;
+    return convertWord(segment);
+  }).join('');
+}
+
+function convertAllLines(text) {
+  return text.split('\n').map(line => ({
+    original: line,
+    yaourt: convertLine(line)
+  }));
+}
+
+// ===== UI =====
+let convertedLines = [];
+let karaokeIndex = 0;
+let karaokeAuto = false;
+let karaokeTimer = null;
+
+// Tabs
+document.getElementById('tabs').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-tab]');
+  if (!btn) return;
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+});
+
+function convertLyrics() {
+  const input = document.getElementById('inputLyrics').value.trim();
+  if (!input) return;
+
+  const btn = document.getElementById('btnConvert');
+  btn.innerHTML = '<span class="spinner"></span> Conversion...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    convertedLines = convertAllLines(input);
+    displayResult();
+    btn.innerHTML = '✨ Transformer en yaourt';
+    btn.disabled = false;
+  }, 300);
+}
+
+function displayResult() {
+  const area = document.getElementById('resultArea');
+  const container = document.getElementById('resultLines');
+  area.style.display = 'block';
+
+  container.innerHTML = convertedLines
+    .filter(l => l.original.trim())
+    .map(l => `
+      <div class="line-pair fade-in">
+        <div class="line-en">${escapeHtml(l.original)}</div>
+        <div class="line-fr">${escapeHtml(l.yaourt)}</div>
+      </div>
+    `).join('');
+
+  area.scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyResult() {
+  const text = convertedLines
+    .filter(l => l.original.trim())
+    .map(l => l.yaourt)
+    .join('\n');
+  navigator.clipboard.writeText(text).then(() => showToast('Copié ! 📋'));
+}
+
+// Karaoke
+function startKaraoke() {
+  const lines = convertedLines.filter(l => l.original.trim());
+  if (!lines.length) return;
+  karaokeIndex = 0;
+  karaokeAuto = false;
+  document.getElementById('karaokeOverlay').style.display = 'flex';
+  updateKaraoke();
+}
+
+function updateKaraoke() {
+  const lines = convertedLines.filter(l => l.original.trim());
+  const line = lines[karaokeIndex];
+  document.getElementById('karaokeLine').innerHTML = `<span class="highlight">${escapeHtml(line.yaourt)}</span>`;
+  document.getElementById('karaokeCounter').textContent = `${karaokeIndex + 1} / ${lines.length}`;
+}
+
+function karaokeNext() {
+  const lines = convertedLines.filter(l => l.original.trim());
+  karaokeIndex = Math.min(karaokeIndex + 1, lines.length - 1);
+  updateKaraoke();
+}
+
+function karaokePrev() {
+  karaokeIndex = Math.max(karaokeIndex - 1, 0);
+  updateKaraoke();
+}
+
+function karaokeToggle() {
+  karaokeAuto = !karaokeAuto;
+  document.getElementById('karaokePlayBtn').textContent = karaokeAuto ? '⏸ Pause' : '▶ Go';
+  if (karaokeAuto) {
+    karaokeTimer = setInterval(() => {
+      const lines = convertedLines.filter(l => l.original.trim());
+      if (karaokeIndex < lines.length - 1) {
+        karaokeIndex++;
+        updateKaraoke();
+      } else {
+        karaokeAuto = false;
+        document.getElementById('karaokePlayBtn').textContent = '▶ Go';
+        clearInterval(karaokeTimer);
+      }
+    }, 3000);
+  } else {
+    clearInterval(karaokeTimer);
+  }
+}
+
+function closeKaraoke() {
+  karaokeAuto = false;
+  clearInterval(karaokeTimer);
+  document.getElementById('karaokeOverlay').style.display = 'none';
+}
+
+// Example songs
+const EXAMPLE_SONGS = [
+  {
+    emoji: '🎸', title: 'Satisfaction', artist: 'The Rolling Stones',
+    lyrics: "I can't get no satisfaction\nI can't get no satisfaction\n'Cause I try and I try and I try and I try\nI can't get no, I can't get no"
+  },
+  {
+    emoji: '🌟', title: 'Bohemian Rhapsody', artist: 'Queen',
+    lyrics: "Is this the real life?\nIs this just fantasy?\nCaught in a landslide\nNo escape from reality\nOpen your eyes\nLook up to the skies and see\nI'm just a poor boy, I need no sympathy"
+  },
+  {
+    emoji: '🎹', title: 'Imagine', artist: 'John Lennon',
+    lyrics: "Imagine there's no heaven\nIt's easy if you try\nNo hell below us\nAbove us only sky\nImagine all the people\nLiving for today"
+  },
+  {
+    emoji: '💃', title: 'Billie Jean', artist: 'Michael Jackson',
+    lyrics: "She was more like a beauty queen\nFrom a movie scene\nI said don't mind\nBut what do you mean\nI am the one\nWho will dance on the floor in the round"
+  },
+  {
+    emoji: '🎤', title: 'Hello', artist: 'Adele',
+    lyrics: "Hello, it's me\nI was wondering if after all these years\nYou'd like to meet\nTo go over everything\nThey say that time's supposed to heal you\nBut I ain't done much healing"
+  },
+  {
+    emoji: '🌈', title: 'Yesterday', artist: 'The Beatles',
+    lyrics: "Yesterday, all my troubles seemed so far away\nNow it looks as though they're here to stay\nOh, I believe in yesterday\nSuddenly, I'm not half the man I used to be\nThere's a shadow hanging over me\nOh, yesterday came suddenly"
+  },
+];
+
+function loadSongList() {
+  const container = document.getElementById('songList');
+  container.innerHTML = EXAMPLE_SONGS.map((s, i) => `
+    <div class="song-item" onclick="loadSong(${i})">
+      <div class="emoji">${s.emoji}</div>
+      <div class="info">
+        <div class="title">${s.title}</div>
+        <div class="artist">${s.artist}</div>
+      </div>
+      <span style="color:var(--text2);font-size:1.2rem">›</span>
+    </div>
+  `).join('');
+}
+
+function loadSong(index) {
+  const song = EXAMPLE_SONGS[index];
+  document.getElementById('inputLyrics').value = song.lyrics;
+  // Switch to convert tab
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-tab="convert"]').classList.add('active');
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-convert').classList.add('active');
+  convertLyrics();
+  showToast(`${song.emoji} ${song.title} chargée !`);
+}
+
+// Utils
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Init
+loadSongList();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+</body>
+</html>
