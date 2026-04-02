@@ -767,22 +767,87 @@ document.getElementById('tabs').addEventListener('click', e => {
 });
 
 // ===== AI CONVERSION =====
-const AI_PROMPT = `Tu es un expert en phonétique anglaise et française. Ta mission : transformer des paroles de chanson en anglais en syllabes françaises prononçables.
+const AI_PROMPT = `Tu es un expert en phonétique. Tu TRANSCRIS des paroles anglaises en syllabes FRANÇAISES prononçables.
 
-Règles :
-- Chaque mot anglais doit être remplacé par des syllabes françaises qui, lues à voix haute par un francophone, sonnent comme le mot anglais original
-- Utilise uniquement des sons qui existent en français
-- Sépare les syllabes par des tirets quand le mot est long (ex: "satisfaction" → "sa-tisse-fak-cheune")
-- Garde la ponctuation et les sauts de ligne
-- Le résultat doit être naturel et facile à lire/chanter pour un francophone
-- N'ajoute AUCUNE explication, AUCUN commentaire — renvoie UNIQUEMENT les paroles converties
-- "th" → "z" (the → ze), "r" anglais → "r" français, voyelles longues avec accents
-- Conserve exactement le même nombre de lignes que l'original
+RÈGLE ABSOLUE : Le résultat ne doit contenir AUCUN mot anglais. CHAQUE mot doit être remplacé par sa transcription phonétique en syllabes françaises. Un francophone qui lit le résultat à voix haute doit reproduire le son de l'anglais SANS SAVOIR qu'il parle anglais.
 
-Exemples :
+Guide phonétique :
+- "the" → "ze" (jamais "the")
+- "a" (article) → "eu" 
+- "I" → "aïe"
+- "you" → "iou"
+- "to" → "tou"
+- "is" → "iz"
+- "are" → "ar"
+- "was" → "ouoz"
+- "have" → "hav"
+- "not" → "note"
+- "my" → "maïe"
+- "we" → "oui"
+- "she" → "shi"
+- "he" → "hi"
+- "they" → "zé"
+- "love" → "lov"  
+- "don't" → "donnte"
+- "can't" → "quannte"
+- "it" → "ite"
+- "in" → "inne"
+- "on" → "one"
+- "with" → "ouiz"
+- "this" → "ziss"
+- "that" → "zate"
+- "what" → "ouate"
+- "all" → "ol"
+- "just" → "djoste"
+- "like" → "laïke"
+- "know" → "nô"
+- "think" → "zinnke"
+- "want" → "ouonnte"
+- "get" → "guète"
+- "make" → "méke"
+- "go" → "gô"
+- "see" → "si"
+- "come" → "kome"
+- "time" → "taïme"
+- "no" → "nô"
+- "way" → "ouéï"
+- "out" → "aoute"
+- "up" → "eup"
+- "so" → "sô"
+- "and" → "ènde"
+- "but" → "beute"
+- "or" → "or"
+- "if" → "ife"
+- Terminaisons "-tion" → "-cheune" (nation → né-cheune)
+- Terminaisons "-ing" → "-inng" (singing → sinng-inng) 
+- Terminaisons "-ight" → "-aïte" (night → naïte)
+- Terminaisons "-ould" → "-oude" (could → koude)
+- Terminaisons "-ness" → "-nèss"
+- Terminaisons "-ful" → "-foule"
+- "th" → "z" toujours
+- "w" devant voyelle → "ou" (water → ouo-teur)
+- Son "r" anglais → "r" français normal
+- Voyelles longues : utilise î, ô, è, é, â
+
+FORMAT :
+- Renvoie UNIQUEMENT les paroles converties, rien d'autre
+- Conserve exactement le même nombre de lignes
+- Sépare les syllabes par des tirets pour les mots longs (3+ syllabes)
+- Garde la ponctuation
+
+INTERDIT :
+- Laisser un mot en anglais tel quel
+- Ajouter des explications ou commentaires
+- Changer le nombre de lignes
+
+Exemples complets :
 "I can't get no satisfaction" → "Aïe quannte guète nô sa-tisse-fak-cheune"
 "Is this the real life" → "Iz ziss ze ri-eul laïfe"
-"Yesterday all my troubles seemed so far away" → "Yèss-teur-dé ole maïe tro-beulze simde sô fare è-oué"`;
+"She loves you yeah yeah yeah" → "Shi lovz iou yè yè yè"
+"We are the champions my friends" → "Oui ar ze tcham-pi-eunz maïe frèndz"
+"Don't stop me now" → "Donnte stope mi naou"
+"Every breath you take" → "Èvri brèz iou téke"
+"I will always love you" → "Aïe ouile ol-ouéïze lov iou"`;
 
 async function convertWithAI(text) {
   const apiKey = localStorage.getItem('singfaux_api_key');

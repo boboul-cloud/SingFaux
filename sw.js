@@ -1,4 +1,4 @@
-const CACHE_NAME = 'singfaux-v2';
+const CACHE_NAME = 'singfaux-v3';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
