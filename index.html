@@ -767,87 +767,74 @@ document.getElementById('tabs').addEventListener('click', e => {
 });
 
 // ===== AI CONVERSION =====
-const AI_PROMPT = `Tu es un expert en phonétique. Tu TRANSCRIS des paroles anglaises en syllabes FRANÇAISES prononçables.
+const AI_PROMPT = `RÔLE : Tu es une machine de transcription phonétique. Tu convertis des paroles anglaises en syllabes EXCLUSIVEMENT françaises.
 
-RÈGLE ABSOLUE : Le résultat ne doit contenir AUCUN mot anglais. CHAQUE mot doit être remplacé par sa transcription phonétique en syllabes françaises. Un francophone qui lit le résultat à voix haute doit reproduire le son de l'anglais SANS SAVOIR qu'il parle anglais.
+PRINCIPE : Un francophone qui lit ton résultat à voix haute doit reproduire les sons anglais. Il ne doit PAS reconnaître un seul mot anglais à l'écrit. TOUT doit être en phonétique française.
 
-Guide phonétique :
-- "the" → "ze" (jamais "the")
-- "a" (article) → "eu" 
-- "I" → "aïe"
-- "you" → "iou"
-- "to" → "tou"
-- "is" → "iz"
-- "are" → "ar"
-- "was" → "ouoz"
-- "have" → "hav"
-- "not" → "note"
-- "my" → "maïe"
-- "we" → "oui"
-- "she" → "shi"
-- "he" → "hi"
-- "they" → "zé"
-- "love" → "lov"  
-- "don't" → "donnte"
-- "can't" → "quannte"
-- "it" → "ite"
-- "in" → "inne"
-- "on" → "one"
-- "with" → "ouiz"
-- "this" → "ziss"
-- "that" → "zate"
-- "what" → "ouate"
-- "all" → "ol"
-- "just" → "djoste"
-- "like" → "laïke"
-- "know" → "nô"
-- "think" → "zinnke"
-- "want" → "ouonnte"
-- "get" → "guète"
-- "make" → "méke"
-- "go" → "gô"
-- "see" → "si"
-- "come" → "kome"
-- "time" → "taïme"
-- "no" → "nô"
-- "way" → "ouéï"
-- "out" → "aoute"
-- "up" → "eup"
-- "so" → "sô"
-- "and" → "ènde"
-- "but" → "beute"
-- "or" → "or"
-- "if" → "ife"
-- Terminaisons "-tion" → "-cheune" (nation → né-cheune)
-- Terminaisons "-ing" → "-inng" (singing → sinng-inng) 
-- Terminaisons "-ight" → "-aïte" (night → naïte)
-- Terminaisons "-ould" → "-oude" (could → koude)
-- Terminaisons "-ness" → "-nèss"
-- Terminaisons "-ful" → "-foule"
-- "th" → "z" toujours
-- "w" devant voyelle → "ou" (water → ouo-teur)
-- Son "r" anglais → "r" français normal
-- Voyelles longues : utilise î, ô, è, é, â
+RÈGLE N°1 — AUCUN MOT ANGLAIS NE DOIT RESTER. Vérifie chaque mot de ta sortie : si un mot existe en anglais, remplace-le par sa transcription phonétique française. Exemples de mots souvent oubliés :
+- "bad" → "bade" (PAS "bad")
+- "song" → "sonng" (PAS "song")  
+- "her" → "heur" (PAS "her")
+- "start" → "starte" (PAS "start")
+- "heart" → "harte" (PAS "heart")
+- "skin" → "skinne" (PAS "skin")
+- "feel" → "fîle" (PAS "feel")
+- "cool" → "koule" (PAS "cool")
+- "his" → "hiz" (PAS "his")
+- "for" → "fore" (PAS "for")
+- "let" → "lète" (PAS "let")
+- "pain" → "péïne" (PAS "pain")
+- "fool" → "foule" (PAS "fool")
+- "cold" → "kolde" (PAS "cold")
+- "world" → "oueurlde" (PAS "world")
+- "made" → "méde" (PAS "made")
+- "under" → "eun-deur" (PAS "under")
+- "begin" → "bi-guinne" (PAS "begin")
+- "carry" → "ka-ri" (PAS "carry")
+- "play" → "pléï" (PAS "play")
+
+RÈGLE N°2 — Transcriptions de base :
+- "the" → "ze", "a" (article) → "eu", "I" → "aïe", "you" → "iou"
+- "to" → "tou", "is" → "iz", "are" → "ar", "was" → "ouoz"
+- "it" → "ite", "in" → "inne", "on" → "one", "of" → "ov"
+- "and" → "ènde", "but" → "beute", "or" → "or", "if" → "ife"
+- "my" → "maïe", "your" → "iore", "we" → "oui", "they" → "zé"
+- "she" → "shi", "he" → "hi", "her" → "heur", "his" → "hiz"
+- "don't" → "donnte", "can't" → "quannte", "won't" → "ouonnte"
+- "not" → "note", "no" → "nô", "so" → "sô", "go" → "gô"
+- "up" → "eupe", "out" → "aoute", "all" → "ole"
+- "this" → "ziss", "that" → "zate", "what" → "ouate"
+- "get" → "guète", "make" → "méke", "take" → "téke"
+- "know" → "nô", "see" → "si", "come" → "kome"
+- "like" → "laïke", "time" → "taïme", "love" → "love"
+- "just" → "djoste", "want" → "ouonnte"
+
+RÈGLE N°3 — Sons anglais → français :
+- "th" → "z" toujours (think → zinnke, the → ze)
+- "w" + voyelle → "ou" + voyelle (world → oueurlde, was → ouoz)
+- Terminaisons "-tion" → "-cheune", "-ing" → "-inng", "-ight" → "-aïte"
+- Terminaisons "-ould" → "-oude", "-ness" → "-nèss", "-ful" → "-foule"
+- Toute consonne finale isolée : ajouter un "e" muet (bad → bade, sad → sade, song → sonng)
+- Voyelles longues : î, ô, è, é, â (feel → fîle, cool → koule)
 
 FORMAT :
-- Renvoie UNIQUEMENT les paroles converties, rien d'autre
-- Conserve exactement le même nombre de lignes
-- Sépare les syllabes par des tirets pour les mots longs (3+ syllabes)
-- Garde la ponctuation
+- UNIQUEMENT les paroles converties, rien d'autre
+- Même nombre de lignes que l'input
+- Tirets entre syllabes pour mots de 3+ syllabes (remember → ri-mème-beur)
+- Conserver la ponctuation
+- Si l'input contient ";" comme séparateur, conserver les ";"
 
-INTERDIT :
-- Laisser un mot en anglais tel quel
-- Ajouter des explications ou commentaires
-- Changer le nombre de lignes
+VÉRIFICATION FINALE : Avant de répondre, relis chaque mot de ta sortie. Si un mot existe tel quel en anglais (bad, song, her, his, feel, cool, start, let, for, pain, etc.), remplace-le.
 
-Exemples complets :
+Exemples :
+"Hey Jude, don't make it bad" → "Èï Djoude, donnte méke ite bade"
+"Take a sad song and make it better" → "Téke eu sade sonng ènde méke ite bè-teur"
+"Let her into your heart" → "Lète heur inne-tou iore harte"
 "I can't get no satisfaction" → "Aïe quannte guète nô sa-tisse-fak-cheune"
-"Is this the real life" → "Iz ziss ze ri-eul laïfe"
 "She loves you yeah yeah yeah" → "Shi lovz iou yè yè yè"
 "We are the champions my friends" → "Oui ar ze tcham-pi-eunz maïe frèndz"
 "Don't stop me now" → "Donnte stope mi naou"
-"Every breath you take" → "Èvri brèz iou téke"
-"I will always love you" → "Aïe ouile ol-ouéïze lov iou"`;
+"Every breath you take" → "Èv-ri brèze iou téke"`;
 
 async function convertWithAI(text) {
   const apiKey = localStorage.getItem('singfaux_api_key');
@@ -879,8 +866,14 @@ async function convertWithAI(text) {
 }
 
 async function convertLyrics() {
-  const input = document.getElementById('inputLyrics').value.trim();
+  let input = document.getElementById('inputLyrics').value.trim();
   if (!input) return;
+
+  // Auto-split lines separated by ; into actual lines
+  if (!input.includes('\n') && input.includes(';')) {
+    input = input.split(';').map(s => s.trim()).filter(Boolean).join('\n');
+    document.getElementById('inputLyrics').value = input;
+  }
 
   const btn = document.getElementById('btnConvert');
   btn.innerHTML = '<span class="spinner"></span> Conversion...';
